@@ -10,7 +10,7 @@ export const users = pgTable("users", {
   fullName: text("full_name").notNull(),
   email: text("email").notNull(),
   phone: text("phone"),
-  role: text("role").notNull().default("buyer"), // farmer, buyer, middleman, transporter
+  role: text("role").notNull().default("buyer"), // admin, farmer, buyer, middleman, transporter
   location: text("location"),
   profilePicture: text("profile_picture"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -21,7 +21,7 @@ export const insertUserSchema = createInsertSchema(users)
   .extend({
     password: z.string().min(6, "Password must be at least 6 characters"),
     email: z.string().email("Please enter a valid email"),
-    role: z.enum(["farmer", "buyer", "middleman", "transporter"], {
+    role: z.enum(["admin", "farmer", "buyer", "middleman", "transporter"], {
       errorMap: () => ({ message: "Please select a valid role" }),
     }),
   });

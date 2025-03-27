@@ -30,7 +30,36 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+// Function to initialize admin user
+async function initAdminUser() {
+  try {
+    // Check if admin user already exists
+    const existingAdmin = await storage.getUserByUsername('admin');
+    
+    if (!existingAdmin) {
+      // Create admin user with all permissions
+      const hashedPassword = await hashPassword('admin');
+      await storage.createUser({
+        username: 'admin',
+        password: hashedPassword,
+        fullName: 'System Administrator',
+        email: 'admin@agribridge.com',
+        role: 'admin',
+        phone: '+1234567890',
+        location: 'System'
+      });
+      console.log('Admin user created successfully');
+    } else {
+      console.log('Admin user already exists');
+    }
+  } catch (error) {
+    console.error('Error creating admin user:', error);
+  }
+}
+
 export function setupAuth(app: Express) {
+  // Initialize admin user when auth is setup
+  initAdminUser();
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "agribridge-secret-key",
     resave: false,
