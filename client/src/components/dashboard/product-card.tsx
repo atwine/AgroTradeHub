@@ -176,12 +176,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="mt-4 grid grid-cols-2 gap-2">
           {user?.role === "farmer" && user.id === product.farmerId ? (
             <>
-              <Button className="px-4 py-2" variant="default">
+              <Button className="w-full bg-primary hover:bg-primary/90">
                 View Bids
               </Button>
               <Button 
-                className="px-4 py-2" 
-                variant="outline"
+                className="w-full border border-input bg-background hover:bg-accent hover:text-accent-foreground"
                 onClick={() => setIsEditDialogOpen(true)}
               >
                 <Edit className="h-4 w-4 mr-1" />
@@ -191,18 +190,17 @@ export default function ProductCard({ product }: ProductCardProps) {
           ) : (user?.role === "buyer" || user?.role === "middleman") ? (
             <>
               <Button 
-                className="px-4 py-2" 
-                variant="default"
+                className="w-full bg-primary hover:bg-primary/90"
                 onClick={() => setIsBidDialogOpen(true)}
               >
                 Place Bid
               </Button>
-              <Button className="px-4 py-2" variant="outline">
+              <Button className="w-full border border-input bg-background hover:bg-accent hover:text-accent-foreground">
                 Contact Seller
               </Button>
             </>
           ) : (
-            <Button className="col-span-2 px-4 py-2" variant="default">
+            <Button className="col-span-2 w-full bg-primary hover:bg-primary/90">
               View Details
             </Button>
           )}
@@ -277,7 +275,11 @@ export default function ProductCard({ product }: ProductCardProps) {
                   )}
                 />
                 <DialogFooter>
-                  <Button type="submit" disabled={placeBidMutation.isPending}>
+                  <Button 
+                    type="submit" 
+                    className="bg-primary hover:bg-primary/90"
+                    disabled={placeBidMutation.isPending}
+                  >
                     {placeBidMutation.isPending ? "Submitting..." : "Submit Bid"}
                   </Button>
                 </DialogFooter>

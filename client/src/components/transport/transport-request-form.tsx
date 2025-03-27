@@ -163,9 +163,8 @@ export default function TransportRequestForm({ onSuccess }: TransportRequestForm
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
-                        variant={"outline"}
                         className={cn(
-                          "w-full pl-3 text-left font-normal",
+                          "w-full pl-3 text-left font-normal border border-input bg-background hover:bg-accent hover:text-accent-foreground",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -197,13 +196,14 @@ export default function TransportRequestForm({ onSuccess }: TransportRequestForm
         <div className="flex justify-end space-x-3 pt-4">
           <Button 
             type="button" 
-            variant="outline" 
+            className="border border-input bg-background hover:bg-accent hover:text-accent-foreground"
             onClick={onSuccess}
           >
             Cancel
           </Button>
           <Button 
             type="submit" 
+            className="bg-primary hover:bg-primary/90"
             disabled={createTransportRequestMutation.isPending}
           >
             {createTransportRequestMutation.isPending ? "Creating..." : "Create Transport Request"}

@@ -100,7 +100,7 @@ export default function Dashboard() {
               <>
                 <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="inline-flex items-center">
+                    <Button className="inline-flex items-center bg-primary hover:bg-primary/90">
                       <Plus className="mr-2 -ml-1 h-5 w-5" />
                       Add New Product
                     </Button>
@@ -116,12 +116,12 @@ export default function Dashboard() {
                   </DialogContent>
                 </Dialog>
                 
-                <Button variant="outline" className="inline-flex items-center text-primary">
+                <Button className="inline-flex items-center border border-input bg-background hover:bg-accent hover:text-accent-foreground">
                   <Database className="mr-2 -ml-1 h-5 w-5" />
                   View All Products
                 </Button>
                 
-                <Button variant="outline" className="inline-flex items-center text-secondary">
+                <Button className="inline-flex items-center border border-input bg-background hover:bg-accent hover:text-accent-foreground">
                   <ShoppingCart className="mr-2 -ml-1 h-5 w-5" />
                   Review Bids
                 </Button>
@@ -130,17 +130,17 @@ export default function Dashboard() {
             
             {(user?.role === "buyer" || user?.role === "middleman") && (
               <>
-                <Button className="inline-flex items-center">
+                <Button className="inline-flex items-center bg-primary hover:bg-primary/90">
                   <Database className="mr-2 -ml-1 h-5 w-5" />
                   Browse Products
                 </Button>
                 
-                <Button variant="outline" className="inline-flex items-center text-primary">
+                <Button className="inline-flex items-center border border-input bg-background hover:bg-accent hover:text-accent-foreground">
                   <ShoppingCart className="mr-2 -ml-1 h-5 w-5" />
                   View My Bids
                 </Button>
                 
-                <Button variant="outline" className="inline-flex items-center text-secondary">
+                <Button className="inline-flex items-center border border-input bg-background hover:bg-accent hover:text-accent-foreground">
                   <Truck className="mr-2 -ml-1 h-5 w-5" />
                   Request Transport
                 </Button>
@@ -149,12 +149,12 @@ export default function Dashboard() {
             
             {user?.role === "transporter" && (
               <>
-                <Button className="inline-flex items-center">
+                <Button className="inline-flex items-center bg-primary hover:bg-primary/90">
                   <Database className="mr-2 -ml-1 h-5 w-5" />
                   Available Transport Jobs
                 </Button>
                 
-                <Button variant="outline" className="inline-flex items-center text-primary">
+                <Button className="inline-flex items-center border border-input bg-background hover:bg-accent hover:text-accent-foreground">
                   <Truck className="mr-2 -ml-1 h-5 w-5" />
                   My Transports
                 </Button>
@@ -185,7 +185,7 @@ export default function Dashboard() {
               </div>
               {userProducts && userProducts.filter(p => p.status === "active").length > 3 && (
                 <div className="mt-4 text-center">
-                  <Button variant="outline">
+                  <Button className="border border-input bg-background hover:bg-accent hover:text-accent-foreground">
                     View All Listings
                     <svg className="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -215,7 +215,7 @@ export default function Dashboard() {
                   <p className="mt-1 text-sm text-gray-500">
                     Go to the Products page to browse available agricultural products.
                   </p>
-                  <Button className="mt-4">Browse Products</Button>
+                  <Button className="mt-4 bg-primary hover:bg-primary/90">Browse Products</Button>
                 </div>
               </div>
             </div>
@@ -232,7 +232,7 @@ export default function Dashboard() {
                   <p className="mt-1 text-sm text-gray-500">
                     Go to the Transport page to find available transport jobs.
                   </p>
-                  <Button className="mt-4">Find Jobs</Button>
+                  <Button className="mt-4 bg-primary hover:bg-primary/90">Find Jobs</Button>
                 </div>
               </div>
             </div>

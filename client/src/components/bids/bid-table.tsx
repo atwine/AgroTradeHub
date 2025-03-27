@@ -230,9 +230,8 @@ export default function BidTable({ filterStatus }: BidTableProps) {
                     {user?.role === "farmer" && bid.status === "pending" ? (
                       <div className="flex space-x-2">
                         <Button 
-                          variant="ghost" 
                           size="sm" 
-                          className="text-primary hover:text-primary/80"
+                          className="bg-primary hover:bg-primary/90"
                           onClick={() => handleAcceptBid(bid.id)}
                           disabled={updateBidStatusMutation.isPending}
                         >
@@ -240,9 +239,8 @@ export default function BidTable({ filterStatus }: BidTableProps) {
                           Accept
                         </Button>
                         <Button 
-                          variant="ghost" 
                           size="sm"
-                          className="text-gray-500 hover:text-gray-700"
+                          className="border border-input bg-background hover:bg-accent hover:text-accent-foreground"
                           onClick={() => handleRejectBid(bid.id)}
                           disabled={updateBidStatusMutation.isPending}
                         >
@@ -250,9 +248,8 @@ export default function BidTable({ filterStatus }: BidTableProps) {
                           Decline
                         </Button>
                         <Button 
-                          variant="ghost" 
                           size="sm"
-                          className="text-secondary hover:text-secondary/80"
+                          className="border border-input bg-background hover:bg-accent hover:text-accent-foreground"
                         >
                           <RefreshCw className="h-4 w-4 mr-1" />
                           Counter
@@ -260,9 +257,8 @@ export default function BidTable({ filterStatus }: BidTableProps) {
                       </div>
                     ) : (
                       <Button 
-                        variant="ghost" 
                         size="sm"
-                        className="text-info hover:text-info/80"
+                        className="bg-primary hover:bg-primary/90"
                       >
                         View Details
                       </Button>
@@ -283,9 +279,8 @@ export default function BidTable({ filterStatus }: BidTableProps) {
           <div>
             <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
               <Button 
-                variant="outline" 
                 size="sm" 
-                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
                 disabled={page === 1}
                 onClick={() => setPage(page - 1)}
               >
@@ -295,16 +290,14 @@ export default function BidTable({ filterStatus }: BidTableProps) {
                 </svg>
               </Button>
               <Button
-                variant="outline"
                 size="sm"
-                className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-primary text-sm font-medium text-white hover:bg-primary/90"
+                className="relative inline-flex items-center px-4 py-2 bg-primary text-sm font-medium text-white hover:bg-primary/90"
               >
                 {page}
               </Button>
               <Button 
-                variant="outline" 
                 size="sm" 
-                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-input bg-background hover:bg-accent hover:text-accent-foreground"
                 disabled={bidsWithDetails.length < 10}
                 onClick={() => setPage(page + 1)}
               >
