@@ -26,11 +26,6 @@ export default function AuthPage() {
   
   const { user, loginMutation, registerMutation, isLoading } = useAuth();
   
-  // If user is already logged in, redirect to home
-  if (user) {
-    return <Redirect to="/" />;
-  }
-  
   // Login form setup
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -63,6 +58,11 @@ export default function AuthPage() {
   const onRegisterSubmit = (values: z.infer<typeof registerSchema>) => {
     registerMutation.mutate(values);
   };
+  
+  // If user is already logged in, redirect to home
+  if (user) {
+    return <Redirect to="/" />;
+  }
   
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row">
@@ -201,7 +201,7 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel>Phone (optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="Your phone number" {...field} />
+                              <Input placeholder="Your phone number" {...field} value={field.value || ''} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -244,7 +244,7 @@ export default function AuthPage() {
                           <FormItem>
                             <FormLabel>Location (optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="Your location" {...field} />
+                              <Input placeholder="Your location" {...field} value={field.value || ''} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
