@@ -105,7 +105,7 @@ export default function Dashboard() {
                       Add New Product
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[625px]">
+                  <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Add New Product</DialogTitle>
                       <DialogDescription>
