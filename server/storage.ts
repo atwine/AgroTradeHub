@@ -133,8 +133,9 @@ export class MemStorage implements IStorage {
     const newProduct = {
       ...product,
       id,
+      unit: product.unit || "kg", // Default to kg if not provided
       images: [] as string[],
-      tags: [] as string[],
+      tags: product.tags || [] as string[],
       status: "active",
       createdAt: new Date(),
       description: product.description || null

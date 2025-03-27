@@ -36,6 +36,7 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
       category: "Grains",
       description: "",
       quantity: 0,
+      unit: "kg",
       price: 0,
       location: "",
     },
@@ -142,13 +143,13 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="quantity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Quantity (Quintals)</FormLabel>
+                <FormLabel>Quantity</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="25" {...field} />
                 </FormControl>
@@ -158,10 +159,35 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
           />
           <FormField
             control={form.control}
+            name="unit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unit</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="kg">Kilogram (kg)</SelectItem>
+                    <SelectItem value="tonne">Tonne</SelectItem>
+                    <SelectItem value="quintal">Quintal</SelectItem>
+                    <SelectItem value="liter">Liter</SelectItem>
+                    <SelectItem value="pound">Pound (lb)</SelectItem>
+                    <SelectItem value="piece">Piece</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Price per Quintal (₹)</FormLabel>
+                <FormLabel>Price per {form.watch('unit')}</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="2400" {...field} />
                 </FormControl>
@@ -181,7 +207,11 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
                 <Textarea 
                   placeholder="Describe your product quality, harvesting time, etc." 
                   rows={3} 
-                  {...field} 
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value ?? ""}
                 />
               </FormControl>
               <FormMessage />
@@ -226,36 +256,44 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
           <FormLabel>Tags</FormLabel>
           <div className="mt-1">
             <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map((tag, index) => (
-                <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent/20 text-accent">
-                  {tag}
-                  <button 
-                    type="button" 
-                    className="ml-1 inline-flex text-accent focus:outline-none"
-                    onClick={() => handleRemoveTag(tag)}
-                  >
-                    <span className="sr-only">Remove tag</span>
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-              <div className="flex-1 min-w-0">
-                <input
+              {/* Display all added tags with a remove button */}
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 w-full mb-2">
+                  {tags.map((tag, index) => (
+                    <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">
+                      {tag}
+                      <button 
+                        type="button" 
+                        className="ml-1.5 inline-flex text-primary focus:outline-none"
+                        onClick={() => handleRemoveTag(tag)}
+                      >
+                        <span className="sr-only">Remove tag</span>
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              
+              {/* Tag input field with add button */}
+              <div className="flex items-center w-full">
+                <Input
                   type="text"
-                  className="inline-flex items-center text-sm border-gray-300 focus:ring-primary focus:border-primary min-w-[150px] rounded-md sm:text-sm border px-3 py-1"
-                  placeholder="Add tag..."
+                  className="flex-1"
+                  placeholder="Add tag... (press Enter or Add button)"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleTagKeyDown}
                 />
                 <Button 
                   type="button" 
-                  variant="ghost" 
-                  size="sm"
+                  variant="outline" 
+                  size="default"
                   onClick={handleAddTag}
-                  className="ml-1"
+                  className="ml-2"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add
                 </Button>
               </div>
             </div>

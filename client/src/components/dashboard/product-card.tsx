@@ -41,7 +41,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const bidSchema = insertBidSchema.extend({
     productId: z.number().default(product.id),
     amount: z.coerce.number().positive("Bid amount must be positive"),
-    quantity: z.coerce.number().positive("Quantity must be positive").max(product.quantity, `Maximum available quantity is ${product.quantity} quintals`),
+    quantity: z.coerce.number().positive("Quantity must be positive").max(product.quantity, `Maximum available quantity is ${product.quantity} ${product.unit || 'kg'}`),
   });
 
   // Set up the bid form
@@ -84,7 +84,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   // Format date
-  const formatDate = (dateString: string | Date) => {
+  const formatDate = (dateString: string | Date | null) => {
+    if (!dateString) return "Recently";
+    
     const date = new Date(dateString);
     const now = new Date();
     
@@ -135,19 +137,19 @@ export default function ProductCard({ product }: ProductCardProps) {
           <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
           <div className="text-sm text-gray-500">Listed {formatDate(product.createdAt)}</div>
         </div>
-        <div className="mt-2 text-2xl font-bold text-primary">₹{product.price}/quintal</div>
+        <div className="mt-2 text-2xl font-bold text-primary">₹{product.price}/{product.unit || 'kg'}</div>
         <div className="mt-1 flex items-center">
           <MapPin className="h-4 w-4 text-gray-400" />
           <span className="ml-1 text-sm text-gray-500">{product.location}</span>
         </div>
-        <div className="mt-2 flex items-center space-x-2">
-          {product.tags && product.tags.map((tag, index) => (
+        <div className="mt-2 flex items-center flex-wrap gap-2">
+          {product.tags && product.tags.length > 0 && product.tags.map((tag, index) => (
             <span key={index} className="px-2 py-1 text-xs rounded-full bg-accent/20 text-accent">
               {tag}
             </span>
           ))}
           <span className="px-2 py-1 text-xs rounded-full bg-secondary/20 text-secondary">
-            {product.quantity} Quintals
+            {product.quantity} {product.unit || 'kg'}
           </span>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
@@ -197,7 +199,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     name="amount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Bid (₹/quintal)</FormLabel>
+                        <FormLabel>Your Bid (₹/{product.unit || 'kg'})</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
@@ -214,7 +216,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     name="quantity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Quantity (Quintals)</FormLabel>
+                        <FormLabel>Quantity ({product.unit || 'kg'})</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
@@ -236,8 +238,12 @@ export default function ProductCard({ product }: ProductCardProps) {
                       <FormLabel>Message (Optional)</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Add a message to the seller" 
-                          {...field} 
+                          placeholder="Add a message to the seller"
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          ref={field.ref}
+                          value={field.value ?? ""}
                         />
                       </FormControl>
                       <FormMessage />

@@ -50,8 +50,9 @@ export const products = pgTable("products", {
   name: text("name").notNull(),
   category: text("category").notNull(),
   description: text("description"),
-  quantity: real("quantity").notNull(), // in quintals
-  price: real("price").notNull(), // per quintal
+  quantity: real("quantity").notNull(), // amount
+  unit: text("unit").notNull().default("kg"), // kg, tonne, liter, quintal, etc.
+  price: real("price").notNull(), // price per unit
   location: text("location").notNull(),
   images: jsonb("images").$type<string[]>().default([]),
   tags: jsonb("tags").$type<string[]>().default([]),
@@ -64,6 +65,9 @@ export const insertProductSchema = createInsertSchema(products)
   .extend({
     quantity: z.number().positive("Quantity must be positive"),
     price: z.number().positive("Price must be positive"),
+    unit: z.enum(["kg", "tonne", "quintal", "liter", "pound", "piece"], {
+      errorMap: () => ({ message: "Please select a valid unit" }),
+    }),
     category: z.enum(["Grains", "Vegetables", "Fruits", "Pulses", "Dairy", "Other"], {
       errorMap: () => ({ message: "Please select a valid category" }),
     }),
