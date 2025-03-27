@@ -45,7 +45,7 @@ export default function Products() {
             {user?.role === "farmer" && (
               <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="inline-flex items-center">
+                  <Button className="inline-flex items-center bg-primary hover:bg-primary/90">
                     <Plus className="mr-2 -ml-1 h-5 w-5" />
                     Add New Product
                   </Button>
@@ -131,7 +131,7 @@ export default function Products() {
                 <div className="mt-6">
                   <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button className="inline-flex items-center">
+                      <Button className="inline-flex items-center bg-primary hover:bg-primary/90">
                         <Plus className="mr-2 -ml-1 h-5 w-5" />
                         Add New Product
                       </Button>
