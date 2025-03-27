@@ -10,6 +10,8 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+  getPendingFarmerVerifications(): Promise<User[]>;
   
   // Product operations
   createProduct(product: InsertProduct & { farmerId: number }): Promise<Product>;
@@ -44,7 +46,7 @@ export interface IStorage {
 
 export class MemStorage implements IStorage {
   // Maps to store data
-  private users: Map<number, User>;
+  users: Map<number, User>; // Made public to allow access in routes.ts
   private products: Map<number, Product>;
   private bids: Map<number, Bid>;
   private transportRequests: Map<number, TransportRequest>;
@@ -97,10 +99,32 @@ export class MemStorage implements IStorage {
       createdAt: new Date(), 
       profilePicture: null,
       phone: insertUser.phone || null,
-      location: insertUser.location || null
+      location: insertUser.location || null,
+      // Initialize farmer-specific fields
+      farmName: insertUser.farmName || null,
+      farmBio: insertUser.farmBio || null,
+      farmAddress: insertUser.farmAddress || null,
+      verificationId: insertUser.verificationId || null,
+      certifications: [],
+      verificationStatus: "pending"
     };
     this.users.set(id, user as User);
     return user as User;
+  }
+  
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser = { ...user, ...updates };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+  
+  async getPendingFarmerVerifications(): Promise<User[]> {
+    return Array.from(this.users.values()).filter(
+      user => user.role === "farmer" && user.verificationStatus === "pending" && user.verificationId
+    );
   }
 
   // Product operations

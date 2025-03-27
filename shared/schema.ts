@@ -13,17 +13,31 @@ export const users = pgTable("users", {
   role: text("role").notNull().default("buyer"), // admin, farmer, buyer, middleman, transporter
   location: text("location"),
   profilePicture: text("profile_picture"),
+  
+  // Farmer specific fields
+  farmName: text("farm_name"),
+  farmBio: text("farm_bio"),
+  farmAddress: text("farm_address"),
+  verificationId: text("verification_id"), // Government ID or farm association ID
+  certifications: jsonb("certifications").$type<string[]>().default([]), // e.g., organic, fair trade
+  verificationStatus: text("verification_status").default("pending"), // pending, verified, rejected
+  
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users)
-  .omit({ id: true, profilePicture: true, createdAt: true })
+  .omit({ id: true, profilePicture: true, createdAt: true, certifications: true, verificationStatus: true })
   .extend({
     password: z.string().min(6, "Password must be at least 6 characters"),
     email: z.string().email("Please enter a valid email"),
     role: z.enum(["admin", "farmer", "buyer", "middleman", "transporter"], {
       errorMap: () => ({ message: "Please select a valid role" }),
     }),
+    // Make farmer-specific fields optional in the schema
+    farmName: z.string().optional(),
+    farmBio: z.string().optional(),
+    farmAddress: z.string().optional(),
+    verificationId: z.string().optional(),
   });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

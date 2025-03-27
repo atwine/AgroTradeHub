@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Redirect, useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { insertUserSchema } from "@shared/schema";
 import { Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -23,6 +24,7 @@ const registerSchema = insertUserSchema;
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
   const [location] = useLocation();
+  const [selectedRole, setSelectedRole] = useState("buyer");
   
   const { user, loginMutation, registerMutation, isLoading } = useAuth();
   
@@ -46,8 +48,19 @@ export default function AuthPage() {
       phone: "",
       role: "buyer",
       location: "",
+      // Farmer specific fields
+      farmName: "",
+      farmBio: "",
+      farmAddress: "",
+      verificationId: "",
     },
   });
+  
+  // Update form when role changes
+  const watchRole = registerForm.watch("role");
+  useEffect(() => {
+    setSelectedRole(watchRole);
+  }, [watchRole]);
   
   // Handle login submission
   const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {
@@ -251,6 +264,84 @@ export default function AuthPage() {
                         )}
                       />
                     </div>
+                    
+                    {/* Farmer-specific fields that show only when 'farmer' role is selected */}
+                    {selectedRole === "farmer" && (
+                      <div className="space-y-4 border border-border rounded-md p-4 my-4">
+                        <h3 className="text-lg font-medium">Farmer Details</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          These details help buyers trust your products and verify your farm.
+                        </p>
+                        
+                        <FormField
+                          control={registerForm.control}
+                          name="farmName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Farm Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Your farm's name" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={registerForm.control}
+                          name="farmAddress"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Farm Address</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Your farm's address" {...field} value={field.value || ''} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={registerForm.control}
+                          name="farmBio"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Farm Bio</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder="Tell us about your farm and farming practices" 
+                                  className="resize-none" 
+                                  {...field} 
+                                  value={field.value || ''} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={registerForm.control}
+                          name="verificationId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Verification ID</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="Government ID or farm association number" 
+                                  {...field} 
+                                  value={field.value || ''} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                              <p className="text-xs text-muted-foreground">
+                                This ID will be used to verify your identity. Your verification status will appear on your profile.
+                              </p>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
                     
                     <Button 
                       type="submit" 

@@ -18,6 +18,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     res.status(401).send("Unauthorized");
   };
+  
+  // Middleware to check if user is a farmer
+  const isFarmer = (req: any, res: any, next: any) => {
+    if (req.user.role === "farmer") {
+      return next();
+    }
+    res.status(403).send("Only farmers can access this resource");
+  };
+  
+  // Middleware to check if user is an admin
+  const isAdmin = (req: any, res: any, next: any) => {
+    if (req.user.role === "admin") {
+      return next();
+    }
+    res.status(403).send("Only admins can access this resource");
+  };
 
   // Products API
   app.get("/api/products", async (req, res) => {
@@ -328,6 +344,153 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(message);
     } catch (error) {
       res.status(500).json({ message: "Error marking message as read" });
+    }
+  });
+
+  // Farmer Profile API
+  
+  // Update farmer profile
+  app.patch("/api/farmer/profile", isAuthenticated, isFarmer, async (req: any, res) => {
+    try {
+      const { farmName, farmBio, farmAddress } = req.body;
+      
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Build updates object with only provided fields
+      const updates: any = {};
+      if (farmName !== undefined) updates.farmName = farmName;
+      if (farmBio !== undefined) updates.farmBio = farmBio;
+      if (farmAddress !== undefined) updates.farmAddress = farmAddress;
+      
+      // Update user in storage
+      const updatedUser = await storage.updateUser(user.id, updates);
+      
+      res.json({
+        farmName: updatedUser?.farmName,
+        farmBio: updatedUser?.farmBio,
+        farmAddress: updatedUser?.farmAddress
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error updating farmer profile" });
+    }
+  });
+  
+  // Submit verification ID
+  app.post("/api/farmer/verification", isAuthenticated, isFarmer, async (req: any, res) => {
+    try {
+      const { verificationId } = req.body;
+      
+      if (!verificationId) {
+        return res.status(400).json({ message: "Verification ID is required" });
+      }
+      
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update verification ID and reset status to pending
+      const updates = {
+        verificationId,
+        verificationStatus: "pending" 
+      };
+      
+      const updatedUser = await storage.updateUser(user.id, updates);
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to update user" });
+      }
+      
+      res.json({ 
+        verificationId: updatedUser.verificationId,
+        verificationStatus: updatedUser.verificationStatus
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error submitting verification ID" });
+    }
+  });
+  
+  // Add or remove certifications
+  app.patch("/api/farmer/certifications", isAuthenticated, isFarmer, async (req: any, res) => {
+    try {
+      const { action, certification } = req.body;
+      
+      if (!action || !certification || !["add", "remove"].includes(action)) {
+        return res.status(400).json({ message: "Invalid request. Provide action (add/remove) and certification" });
+      }
+      
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      let updatedCertifications = [...(user.certifications || [])];
+      
+      if (action === "add" && !updatedCertifications.includes(certification)) {
+        updatedCertifications.push(certification);
+      } else if (action === "remove") {
+        updatedCertifications = updatedCertifications.filter(cert => cert !== certification);
+      }
+      
+      // Update certifications
+      const updatedUser = await storage.updateUser(user.id, { certifications: updatedCertifications });
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to update certifications" });
+      }
+      
+      res.json({ certifications: updatedUser.certifications });
+    } catch (error) {
+      res.status(500).json({ message: "Error updating certifications" });
+    }
+  });
+  
+  // Admin verification endpoints
+  app.get("/api/admin/verifications", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const pendingVerifications = await storage.getPendingFarmerVerifications();
+      
+      res.json(pendingVerifications.map(user => ({
+        id: user.id,
+        username: user.username,
+        fullName: user.fullName,
+        verificationId: user.verificationId,
+        farmName: user.farmName,
+        farmAddress: user.farmAddress
+      })));
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching pending verifications" });
+    }
+  });
+  
+  app.patch("/api/admin/verifications/:userId", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { status } = req.body;
+      
+      if (!status || !["verified", "rejected"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      if (user.role !== "farmer") {
+        return res.status(400).json({ message: "User is not a farmer" });
+      }
+      
+      // Update verification status
+      const updatedUser = await storage.updateUser(userId, { verificationStatus: status });
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to update verification status" });
+      }
+      
+      res.json({ id: updatedUser.id, verificationStatus: updatedUser.verificationStatus });
+    } catch (error) {
+      res.status(500).json({ message: "Error updating verification status" });
     }
   });
 
