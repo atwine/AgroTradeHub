@@ -210,7 +210,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Bid Dialog */}
         <Dialog open={isBidDialogOpen} onOpenChange={setIsBidDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Place a Bid</DialogTitle>
               <DialogDescription>
@@ -288,7 +288,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         
         {/* Edit Product Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[625px]">
+          <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Product</DialogTitle>
               <DialogDescription>
