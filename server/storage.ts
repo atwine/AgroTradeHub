@@ -134,6 +134,7 @@ export class MemStorage implements IStorage {
       ...product,
       id,
       unit: product.unit || "kg", // Default to kg if not provided
+      currency: product.currency || "INR", // Default to INR if not provided
       images: [] as string[],
       tags: product.tags || [] as string[],
       status: "active",

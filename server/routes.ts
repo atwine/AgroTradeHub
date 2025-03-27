@@ -89,6 +89,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching products" });
     }
   });
+  
+  app.patch("/api/products/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const productId = parseInt(req.params.id);
+      const product = await storage.getProductById(productId);
+      
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      // Check if user is the farmer who owns this product
+      if (product.farmerId !== req.user.id) {
+        return res.status(403).json({ message: "You don't have permission to update this product" });
+      }
+      
+      // Validate request body
+      const validated = insertProductSchema.partial().parse(req.body);
+      
+      // Create a safe update object, ensuring tags is properly handled
+      const updateData = {
+        ...validated,
+        tags: Array.isArray(req.body.tags) ? req.body.tags : undefined
+      };
+      
+      // Update the product
+      const updatedProduct = await storage.updateProduct(productId, updateData);
+      
+      res.json(updatedProduct);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: "Error updating product" });
+    }
+  });
 
   // Bids API
   app.post("/api/bids", isAuthenticated, async (req: any, res) => {

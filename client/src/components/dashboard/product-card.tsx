@@ -13,8 +13,9 @@ import { z } from "zod";
 import { insertBidSchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Calendar } from "lucide-react";
+import { MapPin, Calendar, Edit } from "lucide-react";
 import { Product } from "@shared/schema";
+import ProductForm from "@/components/products/product-form";
 
 interface ProductCardProps {
   product: Product;
@@ -24,6 +25,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // Get farmer info for the product
   const { data: farmerInfo } = useQuery<any>({
@@ -36,6 +38,23 @@ export default function ProductCard({ product }: ProductCardProps) {
     queryKey: [`/api/products/${product.id}/bids`],
     enabled: !!product.id,
   });
+  
+  // Helper function to get currency symbol
+  const getCurrencySymbol = (currency: string): string => {
+    switch (currency) {
+      case "USD": return "$";
+      case "EUR": return "€";
+      case "GBP": return "£";
+      case "JPY": return "¥";
+      case "INR": return "₹";
+      case "AUD": return "A$";
+      case "CAD": return "C$";
+      case "ZAR": return "R";
+      case "NGN": return "₦";
+      case "KES": return "KSh";
+      default: return currency;
+    }
+  };
 
   // Prepare the bid form schema
   const bidSchema = insertBidSchema.extend({
@@ -137,7 +156,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
           <div className="text-sm text-gray-500">Listed {formatDate(product.createdAt)}</div>
         </div>
-        <div className="mt-2 text-2xl font-bold text-primary">₹{product.price}/{product.unit || 'kg'}</div>
+        <div className="mt-2 text-2xl font-bold text-primary">
+          {getCurrencySymbol(product.currency || 'INR')}{product.price}/{product.unit || 'kg'}
+        </div>
         <div className="mt-1 flex items-center">
           <MapPin className="h-4 w-4 text-gray-400" />
           <span className="ml-1 text-sm text-gray-500">{product.location}</span>
@@ -158,7 +179,12 @@ export default function ProductCard({ product }: ProductCardProps) {
               <Button className="px-4 py-2" variant="default">
                 View Bids
               </Button>
-              <Button className="px-4 py-2" variant="outline">
+              <Button 
+                className="px-4 py-2" 
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(true)}
+              >
+                <Edit className="h-4 w-4 mr-1" />
                 Edit
               </Button>
             </>
@@ -199,7 +225,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     name="amount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Bid (₹/{product.unit || 'kg'})</FormLabel>
+                        <FormLabel>Your Bid ({getCurrencySymbol(product.currency || 'INR')}/{product.unit || 'kg'})</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
@@ -257,6 +283,23 @@ export default function ProductCard({ product }: ProductCardProps) {
                 </DialogFooter>
               </form>
             </Form>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit Product Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[625px]">
+            <DialogHeader>
+              <DialogTitle>Edit Product</DialogTitle>
+              <DialogDescription>
+                Update the details of your product listing.
+              </DialogDescription>
+            </DialogHeader>
+            <ProductForm 
+              onSuccess={() => setIsEditDialogOpen(false)} 
+              productToEdit={product} 
+              isEditing={true} 
+            />
           </DialogContent>
         </Dialog>
       </CardContent>

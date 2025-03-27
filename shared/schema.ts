@@ -53,6 +53,7 @@ export const products = pgTable("products", {
   quantity: real("quantity").notNull(), // amount
   unit: text("unit").notNull().default("kg"), // kg, tonne, liter, quintal, etc.
   price: real("price").notNull(), // price per unit
+  currency: text("currency").notNull().default("INR"), // INR, USD, EUR, etc.
   location: text("location").notNull(),
   images: jsonb("images").$type<string[]>().default([]),
   tags: jsonb("tags").$type<string[]>().default([]),
@@ -67,6 +68,9 @@ export const insertProductSchema = createInsertSchema(products)
     price: z.number().positive("Price must be positive"),
     unit: z.enum(["kg", "tonne", "quintal", "liter", "pound", "piece"], {
       errorMap: () => ({ message: "Please select a valid unit" }),
+    }),
+    currency: z.enum(["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "ZAR", "NGN", "KES"], {
+      errorMap: () => ({ message: "Please select a valid currency" }),
     }),
     category: z.enum(["Grains", "Vegetables", "Fruits", "Pulses", "Dairy", "Other"], {
       errorMap: () => ({ message: "Please select a valid category" }),

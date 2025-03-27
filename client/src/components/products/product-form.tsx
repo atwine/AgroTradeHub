@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
-import { insertProductSchema } from "@shared/schema";
+import { insertProductSchema, Product } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -15,11 +15,30 @@ import { X, Plus, Upload } from "lucide-react";
 
 interface ProductFormProps {
   onSuccess?: () => void;
+  productToEdit?: Product; // Optional product for editing
+  isEditing?: boolean;
 }
 
-export default function ProductForm({ onSuccess }: ProductFormProps) {
+// Helper function to get currency symbol
+const getCurrencySymbol = (currency: string): string => {
+  switch (currency) {
+    case "USD": return "$";
+    case "EUR": return "€";
+    case "GBP": return "£";
+    case "JPY": return "¥";
+    case "INR": return "₹";
+    case "AUD": return "A$";
+    case "CAD": return "C$";
+    case "ZAR": return "R";
+    case "NGN": return "₦";
+    case "KES": return "KSh";
+    default: return currency;
+  }
+};
+
+export default function ProductForm({ onSuccess, productToEdit, isEditing = false }: ProductFormProps) {
   const { toast } = useToast();
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>(productToEdit?.tags || []);
   const [tagInput, setTagInput] = useState("");
 
   // Prepare product schema
@@ -28,19 +47,76 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
     quantity: z.coerce.number().positive("Quantity must be positive"),
   });
 
+  // Handle default category
+  const defaultCategory = ((): "Grains" | "Vegetables" | "Fruits" | "Pulses" | "Dairy" | "Other" => {
+    if (!productToEdit?.category) return "Grains";
+    return ["Grains", "Vegetables", "Fruits", "Pulses", "Dairy", "Other"].includes(productToEdit.category)
+      ? productToEdit.category as "Grains" | "Vegetables" | "Fruits" | "Pulses" | "Dairy" | "Other"
+      : "Grains";
+  })();
+
+  // Handle default unit
+  const defaultUnit = ((): "kg" | "tonne" | "quintal" | "liter" | "pound" | "piece" => {
+    if (!productToEdit?.unit) return "kg";
+    return ["kg", "tonne", "quintal", "liter", "pound", "piece"].includes(productToEdit.unit)
+      ? productToEdit.unit as "kg" | "tonne" | "quintal" | "liter" | "pound" | "piece"
+      : "kg";
+  })();
+
+  // Handle default currency
+  const defaultCurrency = ((): "INR" | "USD" | "EUR" | "GBP" | "JPY" | "AUD" | "CAD" | "ZAR" | "NGN" | "KES" => {
+    if (!productToEdit?.currency) return "INR";
+    return ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "ZAR", "NGN", "KES"].includes(productToEdit.currency)
+      ? productToEdit.currency as "INR" | "USD" | "EUR" | "GBP" | "JPY" | "AUD" | "CAD" | "ZAR" | "NGN" | "KES"
+      : "INR";
+  })();
+
   // Set up form
   const form = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
     defaultValues: {
-      name: "",
-      category: "Grains",
-      description: "",
-      quantity: 0,
-      unit: "kg",
-      price: 0,
-      location: "",
+      name: productToEdit?.name || "",
+      category: defaultCategory,
+      description: productToEdit?.description || "",
+      quantity: productToEdit?.quantity || 0,
+      unit: defaultUnit,
+      currency: defaultCurrency,
+      price: productToEdit?.price || 0,
+      location: productToEdit?.location || "",
     },
   });
+
+  // Update form when editing product changes
+  useEffect(() => {
+    if (productToEdit) {
+      // Handle category validation - ensure it's one of the allowed values
+      const validCategory = ["Grains", "Vegetables", "Fruits", "Pulses", "Dairy", "Other"].includes(productToEdit.category) 
+        ? productToEdit.category as "Grains" | "Vegetables" | "Fruits" | "Pulses" | "Dairy" | "Other"
+        : "Grains";
+      
+      // Handle unit validation
+      const validUnit = ["kg", "tonne", "quintal", "liter", "pound", "piece"].includes(productToEdit.unit || "kg")
+        ? productToEdit.unit as "kg" | "tonne" | "quintal" | "liter" | "pound" | "piece"
+        : "kg";
+      
+      // Handle currency validation
+      const validCurrency = ["INR", "USD", "EUR", "GBP", "JPY", "AUD", "CAD", "ZAR", "NGN", "KES"].includes(productToEdit.currency || "INR")
+        ? productToEdit.currency as "INR" | "USD" | "EUR" | "GBP" | "JPY" | "AUD" | "CAD" | "ZAR" | "NGN" | "KES"
+        : "INR";
+      
+      form.reset({
+        name: productToEdit.name,
+        category: validCategory,
+        description: productToEdit.description || "",
+        quantity: productToEdit.quantity,
+        unit: validUnit,
+        currency: validCurrency,
+        price: productToEdit.price,
+        location: productToEdit.location,
+      });
+      setTags(productToEdit.tags || []);
+    }
+  }, [productToEdit, form]);
 
   // Mutation for creating a product
   const createProductMutation = useMutation({
@@ -74,9 +150,42 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
     },
   });
 
+  // Mutation for updating a product
+  const updateProductMutation = useMutation({
+    mutationFn: async (values: z.infer<typeof productSchema>) => {
+      if (!productToEdit) return null;
+      // Add tags to the values
+      const productData = { ...values, tags };
+      const res = await apiRequest("PATCH", `/api/products/${productToEdit.id}`, productData);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Product updated",
+        description: "Your product has been updated successfully",
+      });
+      // Invalidate queries to refresh the products list
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/products"] });
+      // Call the onSuccess callback if provided
+      if (onSuccess) onSuccess();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update product",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Handle form submission
   const onSubmit = (values: z.infer<typeof productSchema>) => {
-    createProductMutation.mutate(values);
+    if (isEditing && productToEdit) {
+      updateProductMutation.mutate(values);
+    } else {
+      createProductMutation.mutate(values);
+    }
   };
 
   // Handle adding a tag
@@ -184,10 +293,44 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
           />
           <FormField
             control={form.control}
+            name="currency"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Currency</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="INR">Indian Rupee (₹)</SelectItem>
+                    <SelectItem value="USD">US Dollar ($)</SelectItem>
+                    <SelectItem value="EUR">Euro (€)</SelectItem>
+                    <SelectItem value="GBP">British Pound (£)</SelectItem>
+                    <SelectItem value="JPY">Japanese Yen (¥)</SelectItem>
+                    <SelectItem value="AUD">Australian Dollar (A$)</SelectItem>
+                    <SelectItem value="CAD">Canadian Dollar (C$)</SelectItem>
+                    <SelectItem value="ZAR">South African Rand (R)</SelectItem>
+                    <SelectItem value="NGN">Nigerian Naira (₦)</SelectItem>
+                    <SelectItem value="KES">Kenyan Shilling (KSh)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 gap-4">
+          <FormField
+            control={form.control}
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Price per {form.watch('unit')}</FormLabel>
+                <FormLabel>
+                  Price per {form.watch('unit')} ({getCurrencySymbol(form.watch('currency'))})
+                </FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="2400" {...field} />
                 </FormControl>
@@ -310,9 +453,13 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
           </Button>
           <Button 
             type="submit" 
-            disabled={createProductMutation.isPending}
+            disabled={isEditing ? updateProductMutation.isPending : createProductMutation.isPending}
           >
-            {createProductMutation.isPending ? "Creating..." : "Create Listing"}
+            {isEditing ? (
+              updateProductMutation.isPending ? "Updating..." : "Update Listing"
+            ) : (
+              createProductMutation.isPending ? "Creating..." : "Create Listing"
+            )}
           </Button>
         </div>
       </form>
