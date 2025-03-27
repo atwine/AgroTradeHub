@@ -180,7 +180,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 View Bids
               </Button>
               <Button 
-                className="w-full border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+                className="w-full bg-primary hover:bg-primary/90"
                 onClick={() => setIsEditDialogOpen(true)}
               >
                 <Edit className="h-4 w-4 mr-1" />

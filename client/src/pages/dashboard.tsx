@@ -116,12 +116,12 @@ export default function Dashboard() {
                   </DialogContent>
                 </Dialog>
                 
-                <Button className="inline-flex items-center border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+                <Button className="inline-flex items-center bg-primary hover:bg-primary/90">
                   <Database className="mr-2 -ml-1 h-5 w-5" />
                   View All Products
                 </Button>
                 
-                <Button className="inline-flex items-center border border-input bg-background hover:bg-accent hover:text-accent-foreground">
+                <Button className="inline-flex items-center bg-primary hover:bg-primary/90">
                   <ShoppingCart className="mr-2 -ml-1 h-5 w-5" />
                   Review Bids
                 </Button>
